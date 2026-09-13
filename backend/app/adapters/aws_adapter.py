@@ -19,6 +19,8 @@ tocar ningún otro usuario/rol real de la cuenta.
 from __future__ import annotations
 
 import logging
+import re
+import unicodedata
 from typing import Any, Optional
 
 import boto3
@@ -31,9 +33,31 @@ from app.models.unified import CloudProvider
 logger = logging.getLogger(__name__)
 
 
-def _iam_user_name(identity_id: str) -> str:
-    # Nombres de usuario IAM no aceptan ciertos caracteres; identity_id
-    # ya es alfanumérico + guiones (ver models/unified.py), así que es seguro.
+_VALID_USERNAME_CHARS = re.compile(r"[^A-Za-z0-9+=,.@_-]")
+
+
+def _sanitize_display_name(display_name: str) -> str:
+    """IAM UserName solo acepta [\\w+=,.@-]. Se normaliza a ASCII (por
+    ejemplo "Hernán" -> "Hernan", no "Hernn") antes de quitar cualquier
+    caracter no permitido, para que el nombre siga siendo legible en la
+    consola de AWS en vez de mostrar solo un identity_id opaco.
+    """
+    normalized = unicodedata.normalize("NFKD", display_name)
+    ascii_only = normalized.encode("ascii", "ignore").decode("ascii")
+    cleaned = ascii_only.strip().replace(" ", "-")
+    cleaned = _VALID_USERNAME_CHARS.sub("", cleaned)
+    return cleaned[:40] or "demo-user"
+
+
+def _iam_user_name(identity_id: str, display_name: str = "") -> str:
+    """Nombre de usuario IAM: legible (display_name sanitizado) + un
+    sufijo corto del identity_id para garantizar unicidad, en vez de
+    solo el identity_id opaco. El display_name original y completo se
+    conserva además como tag (ver onboard()).
+    """
+    short_id = identity_id.replace("identity-", "")[:8]
+    if display_name:
+        return f"demo-{_sanitize_display_name(display_name)}-{short_id}"
     return f"demo-{identity_id}"
 
 
@@ -46,7 +70,7 @@ class AwsAdapter(CloudAdapter):
         self._iam = self._session.client("iam")
 
     async def onboard(self, *, identity_id: str, display_name: str, role_key: str) -> AdapterResult:
-        user_name = _iam_user_name(identity_id)
+        user_name = _iam_user_name(identity_id, display_name)
         path = self._settings.aws_demo_iam_path
 
         # Nota: NO se hace un get_user "before" aquí. Cuando el usuario aún
@@ -96,7 +120,11 @@ class AwsAdapter(CloudAdapter):
             return AdapterResult(success=False, error=str(exc))
 
     async def offboard(self, *, identity_id: str, provider_ref: Optional[str]) -> AdapterResult:
-        user_name = _iam_user_name(identity_id)
+        # El username real (con el display_name incluido) se extrae del
+        # ARN guardado en el Assignment (provider_ref), que es la fuente
+        # de verdad — nunca se recalcula a partir de identity_id solo,
+        # porque ya no incluiría el display_name sanitizado.
+        user_name = provider_ref.rsplit("/", 1)[-1] if provider_ref else _iam_user_name(identity_id)
 
         try:
             before = self._safe_get_user(user_name)

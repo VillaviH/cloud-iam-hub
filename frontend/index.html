@@ -58,6 +58,8 @@
   tr:hover td { background: rgba(255,255,255,0.02); }
   .badge-ok { color: #34d399; font-weight: 700; }
   .badge-err { color: #f87171; font-weight: 700; }
+  .action-onboard { color: #34d399; font-weight: 700; }
+  .action-offboard { color: #f87171; font-weight: 700; }
 
   .empty { color: #64748b; font-size: 13px; padding: 12px 0; text-align: center; }
   .footer-note { text-align: center; color: #64748b; font-size: 12px; margin-top: 30px; }
@@ -327,7 +329,7 @@
           <tr>
             <td>${new Date(e.timestamp).toLocaleTimeString()}</td>
             <td>${e.provider.toUpperCase()}</td>
-            <td>${e.action}</td>
+            <td><span class="${e.action === 'offboard' ? 'action-offboard' : 'action-onboard'}">${e.action}</span></td>
             <td>${e.success ? '<span class="badge-ok">OK</span>' : `<span class="badge-err">ERROR</span>`}</td>
             <td style="font-family:monospace;font-size:11px;color:#64748b">${e.correlation_id}</td>
           </tr>`
