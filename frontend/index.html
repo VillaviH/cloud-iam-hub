@@ -3,121 +3,199 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>cloud-iam-hub · One Cloud to Rule Them All</title>
+<title>cloud-iam-hub</title>
 <style>
+  :root {
+    --blue: #1a73e8;
+    --blue-dark: #1557b0;
+    --red: #d93025;
+    --red-dark: #b0281c;
+    --green: #188038;
+    --ink: #202124;
+    --ink-soft: #5f6368;
+    --border: #e0e3e7;
+    --surface: #ffffff;
+    --bg: #f6f8fa;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.5; min-height: 100vh; }
+  body {
+    font-family: 'Google Sans', Roboto, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.5;
+  }
+  code { font-family: 'Roboto Mono', SFMono-Regular, Consolas, monospace; }
 
-  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 40px 30px; text-align: center; border-bottom: 1px solid #2d3748; }
-  .badge { display: inline-block; background: #4285f4; color: white; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; margin-bottom: 14px; letter-spacing: 0.5px; }
-  .hero h1 { font-size: 2.1em; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
-  .hero p { color: #94a3b8; font-size: 1em; }
+  /* ---------- header ---------- */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+  }
+  .header-row { max-width: 980px; margin: 0 auto; display: flex; align-items: center; gap: 14px; }
+  .mark { display: flex; gap: 3px; flex-shrink: 0; }
+  .mark span { width: 9px; height: 9px; border-radius: 50%; display: block; }
+  .mark .b { background: #1a73e8; }
+  .mark .r { background: #ea4335; }
+  .mark .y { background: #fbbc04; }
+  .mark .g { background: #34a853; }
+  .brand h1 { font-size: 1.05em; font-weight: 500; color: var(--ink); }
+  .brand p { font-size: 0.8em; color: var(--ink-soft); }
+  .header-links { margin-left: auto; display: flex; gap: 18px; }
+  .header-links a { font-size: 0.82em; color: var(--blue); text-decoration: none; font-weight: 500; }
+  .header-links a:hover { text-decoration: underline; }
 
-  .mode-banner { text-align: center; padding: 8px; font-size: 13px; font-weight: 600; }
-  .mode-sandbox { background: #78350f; color: #fef3c7; }
-  .mode-live { background: #14532d; color: #dcfce7; }
-  .mode-unknown { background: #374151; color: #d1d5db; }
+  .status-bar { max-width: 980px; margin: 0 auto; padding: 10px 32px 0; }
+  .status-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.78em; font-weight: 500; padding: 5px 12px; border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; }
+  .status-live { background: #e6f4ea; color: #188038; border-color: #cde8d3; }
+  .status-live .status-dot { background: #188038; }
+  .status-sandbox { background: #fef7e0; color: #b06000; border-color: #fbe8b3; }
+  .status-sandbox .status-dot { background: #f9ab00; }
+  .status-unknown { background: #f1f3f4; color: var(--ink-soft); border-color: var(--border); }
+  .status-unknown .status-dot { background: #9aa0a6; }
 
-  .container { max-width: 1000px; margin: 0 auto; padding: 30px 20px 60px; }
+  /* ---------- layout ---------- */
+  .container { max-width: 980px; margin: 0 auto; padding: 24px 32px 64px; }
 
-  .panel { background: #1e2130; border: 1px solid #2d3748; border-radius: 14px; padding: 24px; margin-bottom: 24px; }
-  .panel h2 { font-size: 1.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px 24px;
+    margin-bottom: 20px;
+  }
+  .card h2 {
+    font-size: 0.95em; font-weight: 600; color: var(--ink);
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .card h2 .n { color: var(--blue); }
 
-  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; margin-top: 14px; }
+  label { display: block; font-size: 0.8em; color: var(--ink-soft); margin-bottom: 5px; margin-top: 14px; font-weight: 500; }
   label:first-of-type { margin-top: 0; }
-  input, select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2d3748; background: #0f1117; color: #e2e8f0; font-size: 14px; }
-  input:focus, select:focus { outline: none; border-color: #4285f4; }
+  input, select {
+    width: 100%; padding: 9px 12px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--surface); color: var(--ink); font-size: 0.88em; font-family: inherit;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,115,232,0.12); }
+  .hint { font-size: 0.74em; color: var(--ink-soft); margin-top: 5px; }
 
-  .checkboxes { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
-  .checkboxes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: #cbd5e1; }
-  .checkboxes input[type="checkbox"] { width: auto; }
+  .checkboxes { display: flex; gap: 18px; margin-top: 4px; flex-wrap: wrap; }
+  .checkboxes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 0.85em; color: var(--ink); font-weight: 400; }
+  .checkboxes input[type="checkbox"] { width: auto; accent-color: var(--blue); }
 
-  button { margin-top: 18px; padding: 11px 22px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
-  button:hover { opacity: 0.88; }
+  .btn-row { display: flex; gap: 10px; margin-top: 18px; align-items: center; flex-wrap: wrap; }
+  button {
+    padding: 9px 18px; border-radius: 6px; border: 1px solid transparent;
+    font-weight: 500; font-size: 0.85em; cursor: pointer; font-family: inherit;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-onboard { background: linear-gradient(90deg, #4285f4, #34a853); color: white; }
-  .btn-offboard { background: linear-gradient(90deg, #ea4335, #fb923c); color: white; }
-  .btn-refresh { background: #2d3748; color: #cbd5e1; }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: var(--blue-dark); }
+  .btn-danger { background: var(--red); color: white; }
+  .btn-danger:hover { background: var(--red-dark); }
+  .btn-outline { background: var(--surface); color: var(--ink-soft); border-color: var(--border); }
+  .btn-outline:hover { background: #f1f3f4; }
+  .btn-text { background: none; color: var(--blue); padding: 6px 4px; font-size: 0.82em; }
+  .btn-text:hover { text-decoration: underline; background: none; }
 
-  .identity-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #171a26; border-radius: 8px; margin-bottom: 8px; border: 1px solid #2d3748; }
-  .identity-row .info { font-size: 13px; }
-  .identity-row .info .name { font-weight: 700; color: #e2e8f0; }
-  .identity-row .info .id { color: #64748b; font-size: 11px; font-family: monospace; }
-  .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
-  .pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
-  .pill-aws { background: rgba(255,153,0,0.2); color: #ff9900; }
-  .pill-gcp { background: rgba(52,168,83,0.2); color: #34a853; }
-  .pill-azure { background: rgba(0,120,212,0.2); color: #0078d4; }
-  .pill-applied, .pill-revoked { opacity: 1; }
-  .pill-pending { opacity: 0.5; }
-  .pill-failed { background: rgba(239,68,68,0.25) !important; color: #f87171 !important; }
+  /* ---------- identity rows ---------- */
+  .identity-row {
+    padding: 14px 16px; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 10px; background: var(--surface);
+  }
+  .identity-row-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .identity-row .name { font-weight: 500; color: var(--ink); font-size: 0.92em; }
+  .identity-row .idcode { color: var(--ink-soft); font-size: 0.72em; margin-top: 1px; }
 
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
-  th { text-align: left; padding: 8px 10px; color: #94a3b8; border-bottom: 1px solid #2d3748; font-weight: 600; }
-  td { padding: 8px 10px; border-bottom: 1px solid #1a1d29; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
-  .badge-ok { color: #34d399; font-weight: 700; }
-  .badge-err { color: #f87171; font-weight: 700; }
-  .action-onboard { color: #34d399; font-weight: 700; }
-  .action-offboard { color: #f87171; font-weight: 700; }
+  .assignment-line {
+    display: flex; align-items: center; gap: 10px; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid #f1f3f4; font-size: 0.82em;
+  }
+  .assignment-line:first-of-type { border-top: none; padding-top: 0; margin-top: 8px; }
+  .provider-tag { font-weight: 600; font-size: 0.78em; width: 52px; flex-shrink: 0; }
+  .provider-tag.aws { color: #b06000; }
+  .provider-tag.gcp { color: #188038; }
+  .provider-tag.azure { color: #1a73e8; }
+  .status-word { flex-shrink: 0; font-weight: 500; }
+  .status-word.applied, .status-word.revoked { color: var(--ink-soft); }
+  .status-word.failed { color: var(--red); }
+  .status-word.pending { color: var(--ink-soft); font-style: italic; }
+  .console-link { color: var(--blue); text-decoration: none; font-size: 0.9em; }
+  .console-link:hover { text-decoration: underline; }
+  .assignment-error { color: var(--red); font-size: 0.78em; flex: 1; }
 
-  .empty { color: #64748b; font-size: 13px; padding: 12px 0; text-align: center; }
-  .footer-note { text-align: center; color: #64748b; font-size: 12px; margin-top: 30px; }
-  .footer-note code { background: #1e2130; padding: 2px 6px; border-radius: 4px; }
+  /* ---------- audit table ---------- */
+  table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  th { text-align: left; padding: 8px 10px; color: var(--ink-soft); border-bottom: 1px solid var(--border); font-weight: 500; }
+  td { padding: 8px 10px; border-bottom: 1px solid #f1f3f4; }
+  tr:hover td { background: #f8f9fa; }
+  .action-onboard { color: var(--green); font-weight: 500; }
+  .action-offboard { color: var(--red); font-weight: 500; }
+  .badge-ok { color: var(--green); font-weight: 500; }
+  .badge-err { color: var(--red); font-weight: 500; }
 
-  .toast { position: fixed; bottom: 24px; right: 24px; background: #1e2130; border: 1px solid #2d3748; border-radius: 10px; padding: 14px 18px; font-size: 13px; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none; }
+  .empty { color: var(--ink-soft); font-size: 0.85em; padding: 14px 0; text-align: center; }
+  .footer-note { text-align: center; color: var(--ink-soft); font-size: 0.78em; margin-top: 28px; line-height: 1.6; }
+  .footer-note code { background: #f1f3f4; padding: 2px 6px; border-radius: 4px; }
+
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: white;
+    border-radius: 8px; padding: 12px 16px; font-size: 0.85em; max-width: 340px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.25); display: none; z-index: 100;
+  }
   .toast.show { display: block; }
-  .toast.error { border-color: #ef4444; color: #fecaca; }
-  .toast.success { border-color: #34d399; color: #bbf7d0; }
+  .toast.error { background: var(--red); }
+  .toast.success { background: #1e1e1e; }
 
-  .links-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
-  .links-row a { color: #60a5fa; font-size: 13px; text-decoration: none; }
-  .links-row a:hover { text-decoration: underline; }
-
-  .cloud-strip { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
-  .cloud-chip { font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; }
-  .chip-gcp { background: rgba(66,133,244,0.18); color: #60a5fa; border: 1px solid rgba(66,133,244,0.4); }
-  .chip-aws { background: rgba(255,153,0,0.18); color: #fdba74; border: 1px solid rgba(255,153,0,0.4); }
-  .chip-azure { background: rgba(0,120,212,0.18); color: #7dd3fc; border: 1px solid rgba(0,120,212,0.4); }
+  @media (max-width: 700px) {
+    .header-row { flex-wrap: wrap; }
+    .header-links { margin-left: 0; }
+  }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <div class="badge">🚀 DevFest Quito 2026</div>
-  <h1>One Cloud to Rule Them All</h1>
-  <p>cloud-iam-hub · gobernando AWS y Azure desde GCP</p>
-  <div class="cloud-strip">
-    <span class="cloud-chip chip-gcp">🧠 GCP · control plane</span>
-    <span class="cloud-chip chip-aws">☁️ AWS · gobernada</span>
-    <span class="cloud-chip chip-azure">☁️ Azure · gobernada</span>
+<header>
+  <div class="header-row">
+    <div class="mark"><span class="b"></span><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <div class="brand">
+      <h1>cloud-iam-hub</h1>
+      <p>One Cloud to Rule Them All — DevFest Quito 2026</p>
+    </div>
+    <div class="header-links">
+      <a href="https://github.com/VillaviH/cloud-iam-hub" target="_blank" rel="noopener">Repo</a>
+      <a href="https://github.com/VillaviH/cloud-iam-hub/blob/main/docs/IAM_CLOUD_MAPPING.md" target="_blank" rel="noopener">Mapeo IAM</a>
+    </div>
   </div>
-  <div class="links-row">
-    <a href="https://github.com/VillaviH/cloud-iam-hub" target="_blank" rel="noopener">📦 Repo en GitHub</a>
-    <a href="https://github.com/VillaviH/cloud-iam-hub/blob/main/docs/IAM_CLOUD_MAPPING.md" target="_blank" rel="noopener">📘 Mapeo IAM entre nubes</a>
+  <div class="status-bar">
+    <span id="modeBanner" class="status-chip status-unknown"><span class="status-dot"></span> conectando…</span>
   </div>
-  <!-- El diagrama de arquitectura vive en el repo (arquitectura-cloud-iam-hub.html),
-       no se sirve desde este bucket porque deploy.sh solo sube index.html. -->
-</div>
-
-<div id="modeBanner" class="mode-banner mode-unknown">Verificando conexión con la API…</div>
+</header>
 
 <div class="container">
 
-  <div class="panel">
-    <h2>⚙️ Conexión a la API</h2>
+  <div class="card">
+    <h2><span class="n">1</span> Conexión a la API</h2>
     <label for="apiBaseUrl">URL del backend (Cloud Run / local)</label>
     <input id="apiBaseUrl" type="text" placeholder="https://cloud-iam-hub-backend-xxxx.run.app" />
 
-    <label for="apiKey">API Key (header <code>X-Api-Key</code>, solo si el backend la exige)</label>
-    <input id="apiKey" type="password" placeholder="Déjalo vacío si el backend corre sin API_SHARED_SECRET" />
+    <label for="apiKey">API Key (header <code>X-Api-Key</code>)</label>
+    <input id="apiKey" type="password" placeholder="Vacío si el backend no exige API_SHARED_SECRET" />
 
-    <button class="btn-refresh" onclick="checkHealth()">Probar conexión</button>
+    <div class="btn-row">
+      <button class="btn-outline" onclick="checkHealth()">Probar conexión</button>
+    </div>
   </div>
 
-  <div class="panel">
-    <h2>🟢 Onboarding — dar acceso en las 3 nubes de un golpe</h2>
-    <label for="displayName">Nombre (identidad de demo, no una persona real)</label>
+  <div class="card">
+    <h2><span class="n">2</span> Onboarding — gobernar identidad en las 3 nubes</h2>
+    <label for="displayName">Nombre de la identidad de demo</label>
     <input id="displayName" type="text" placeholder="Speaker Demo DevFest" />
 
     <label for="roleKey">Rol</label>
@@ -133,32 +211,37 @@
       <label><input type="checkbox" value="azure" class="prov-checkbox" checked> Azure</label>
     </div>
 
-    <button class="btn-onboard" onclick="onboard()">Onboardear en las 3 nubes</button>
+    <div class="btn-row">
+      <button class="btn-primary" onclick="onboard()">Onboardear</button>
+    </div>
   </div>
 
-  <div class="panel">
-    <h2>👥 Identidades de demo activas</h2>
-    <button class="btn-refresh" onclick="renderIdentities()">Actualizar lista</button>
-    <div id="identitiesList" style="margin-top:14px"></div>
+  <div class="card">
+    <h2><span class="n">3</span> Identidades activas en esta sesión</h2>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn-outline" onclick="renderIdentities()">Actualizar lista</button>
+      <button class="btn-danger" onclick="cleanupAll()">Limpiar todas (offboard masivo)</button>
+    </div>
+    <div id="identitiesList" style="margin-top:16px"></div>
   </div>
 
-  <div class="panel">
-    <h2>📜 Audit trail (últimos eventos, cross-cloud)</h2>
-    <button class="btn-refresh" onclick="loadAudit()">Actualizar audit</button>
-    <div id="auditTableWrap" style="margin-top:14px"></div>
+  <div class="card">
+    <h2><span class="n">4</span> Audit trail cross-cloud</h2>
+    <div class="btn-row" style="margin-top:0">
+      <button class="btn-outline" onclick="loadAudit()">Actualizar audit</button>
+    </div>
+    <div id="auditTableWrap" style="margin-top:16px"></div>
   </div>
 
   <div class="footer-note">
-    cloud-iam-hub — frontend estático servido desde Cloud Storage (GCP).
-    Backend en modo <code>sandbox</code> por defecto: sin credenciales, sin llamadas reales.
-    En modo <code>live</code>, la API exige el header <code>X-Api-Key</code> — configúralo arriba.
+    Frontend estático en Cloud Storage · Backend en Cloud Run.<br>
+    En modo <code>sandbox</code> nada de esto toca nubes reales. En modo <code>live</code>, cada acción es real y verificable en la consola de cada proveedor.
   </div>
 </div>
 
 <div id="toast" class="toast"></div>
 
 <script>
-  // Estado local en memoria: identity_id -> { display_name, assignments[] }
   const state = { identities: {} };
 
   function getApiBaseUrl() {
@@ -178,7 +261,6 @@
   document.getElementById('apiBaseUrl').addEventListener('change', (e) => {
     localStorage.setItem('cloud_iam_hub_api_url', e.target.value.trim());
   });
-
   document.getElementById('apiKey').addEventListener('change', (e) => {
     localStorage.setItem('cloud_iam_hub_api_key', e.target.value.trim());
   });
@@ -200,12 +282,9 @@
     const headers = { 'Content-Type': 'application/json' };
     if (apiKey) headers['X-Api-Key'] = apiKey;
 
-    const res = await fetch(base + path, {
-      headers,
-      ...options,
-    });
+    const res = await fetch(base + path, { headers, ...options });
     if (res.status === 401) {
-      throw new Error('401 no autorizado — revisa el campo "API Key" (X-Api-Key)');
+      throw new Error('401 no autorizado — revisa el campo "API Key"');
     }
     if (!res.ok) {
       const text = await res.text();
@@ -218,11 +297,12 @@
     const banner = document.getElementById('modeBanner');
     try {
       const data = await apiFetch('/health');
-      banner.textContent = `✅ Backend conectado — modo: ${data.mode.toUpperCase()}`;
-      banner.className = `mode-banner ${data.mode === 'live' ? 'mode-live' : 'mode-sandbox'}`;
+      const isLive = data.mode === 'live';
+      banner.innerHTML = `<span class="status-dot"></span> backend conectado · modo ${data.mode}`;
+      banner.className = `status-chip ${isLive ? 'status-live' : 'status-sandbox'}`;
     } catch (err) {
-      banner.textContent = `⚠️ No se pudo conectar al backend: ${err.message}`;
-      banner.className = 'mode-banner mode-unknown';
+      banner.innerHTML = `<span class="status-dot"></span> sin conexión: ${err.message}`;
+      banner.className = 'status-chip status-unknown';
     }
   }
 
@@ -263,25 +343,62 @@
     }
   }
 
-  async function offboard(identityId) {
-    try {
-      const result = await apiFetch('/offboard', {
-        method: 'POST',
-        body: JSON.stringify({ identity_id: identityId }),
-      });
-      if (state.identities[identityId]) {
-        state.identities[identityId].assignments = result.assignments;
-      }
+  async function offboard(identityId, { silent = false } = {}) {
+    const result = await apiFetch('/offboard', {
+      method: 'POST',
+      body: JSON.stringify({ identity_id: identityId }),
+    });
+    if (state.identities[identityId]) {
+      state.identities[identityId].assignments = result.assignments;
+    }
+    if (!silent) {
       showToast(`Offboarding disparado. correlation_id: ${result.correlation_id}`);
       renderIdentities();
       loadAudit();
+    }
+    return result;
+  }
+
+  async function cleanupAll() {
+    const ids = Object.keys(state.identities);
+    if (ids.length === 0) {
+      showToast('No hay identidades de demo que limpiar en esta sesión.', 'error');
+      return;
+    }
+    if (!confirm(`Se va a hacer offboard de ${ids.length} identidad(es) en las nubes reales configuradas. ¿Continuar?`)) {
+      return;
+    }
+    try {
+      await Promise.all(ids.map((id) => offboard(id, { silent: true })));
+      showToast(`Limpieza completa: ${ids.length} identidad(es) revocadas.`);
+      renderIdentities();
+      loadAudit();
     } catch (err) {
-      showToast(`Error en offboarding: ${err.message}`, 'error');
+      showToast(`Error durante la limpieza: ${err.message}`, 'error');
     }
   }
 
-  function providerPillClass(provider) {
-    return { aws: 'pill-aws', gcp: 'pill-gcp', azure: 'pill-azure' }[provider] || '';
+  // --- Deep links reales a la consola de cada proveedor, derivados del
+  // provider_ref que devuelve la propia API (ARN de AWS, object id de
+  // Azure, email del service account de GCP). Sin datos hardcodeados. ---
+
+  function consoleLinkFor(provider, providerRef) {
+    if (!providerRef) return null;
+    if (provider === 'aws') {
+      const userName = providerRef.split('/').pop();
+      return `https://console.aws.amazon.com/iamv2/home#/users/details/${encodeURIComponent(userName)}?section=permissions`;
+    }
+    if (provider === 'azure') {
+      // providerRef es el Object ID (GUID) del usuario en Entra ID.
+      return `https://portal.azure.com/#view/Microsoft_AAD_UsersAndTenants/UserProfileMenuBlade/~/overview/userId/${providerRef}`;
+    }
+    if (provider === 'gcp') {
+      // providerRef: "serviceAccount:nombre@PROYECTO.iam.gserviceaccount.com"
+      const match = providerRef.match(/@([^.]+)\.iam\.gserviceaccount\.com/);
+      const projectId = match ? match[1] : '';
+      return projectId ? `https://console.cloud.google.com/iam-admin/iam?project=${projectId}` : null;
+    }
+    return null;
   }
 
   function renderIdentities() {
@@ -296,20 +413,30 @@
     wrap.innerHTML = ids
       .map((id) => {
         const identity = state.identities[id];
-        const pills = identity.assignments
+        const lines = identity.assignments
           .map((a) => {
-            const statusClass = a.status === 'failed' ? 'pill-failed' : `pill-${a.status}`;
-            return `<span class="pill ${providerPillClass(a.provider)} ${statusClass}">${a.provider.toUpperCase()} · ${a.status}</span>`;
+            const link = consoleLinkFor(a.provider, a.provider_ref);
+            const linkHtml = link ? `<a class="console-link" href="${link}" target="_blank" rel="noopener">Ver en consola →</a>` : '';
+            const errorHtml = a.error ? `<span class="assignment-error">${a.error}</span>` : '';
+            return `
+              <div class="assignment-line">
+                <span class="provider-tag ${a.provider}">${a.provider.toUpperCase()}</span>
+                <span class="status-word ${a.status}">${a.status}</span>
+                ${linkHtml}
+                ${errorHtml}
+              </div>`;
           })
           .join('');
         return `
           <div class="identity-row">
-            <div class="info">
-              <div class="name">${identity.display_name}</div>
-              <div class="id">${id}</div>
-              <div class="pills">${pills}</div>
+            <div class="identity-row-top">
+              <div>
+                <div class="name">${identity.display_name}</div>
+                <div class="idcode">${id}</div>
+              </div>
+              <button class="btn-text" onclick="offboard('${id}')">Offboardear</button>
             </div>
-            <button class="btn-offboard" onclick="offboard('${id}')">Offboardear</button>
+            ${lines}
           </div>`;
       })
       .join('');
@@ -330,8 +457,8 @@
             <td>${new Date(e.timestamp).toLocaleTimeString()}</td>
             <td>${e.provider.toUpperCase()}</td>
             <td><span class="${e.action === 'offboard' ? 'action-offboard' : 'action-onboard'}">${e.action}</span></td>
-            <td>${e.success ? '<span class="badge-ok">OK</span>' : `<span class="badge-err">ERROR</span>`}</td>
-            <td style="font-family:monospace;font-size:11px;color:#64748b">${e.correlation_id}</td>
+            <td>${e.success ? '<span class="badge-ok">OK</span>' : '<span class="badge-err">ERROR</span>'}</td>
+            <td style="font-family:monospace;font-size:0.85em;color:var(--ink-soft)">${e.correlation_id}</td>
           </tr>`
         )
         .join('');
@@ -345,7 +472,6 @@
     }
   }
 
-  // Auto-inicialización
   checkHealth();
   renderIdentities();
 </script>
