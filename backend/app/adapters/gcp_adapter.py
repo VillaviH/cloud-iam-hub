@@ -111,8 +111,7 @@ class GcpAdapter(CloudAdapter):
 
             try:
                 updated = self._client.set_iam_policy(
-                    resource=self._resource_name,
-                    policy=policy,
+                    request={"resource": self._resource_name, "policy": policy}
                 )
                 return before_snapshot, self._policy_to_dict(updated)
             except Aborted as exc:

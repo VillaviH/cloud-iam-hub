@@ -49,9 +49,17 @@ class AwsAdapter(CloudAdapter):
         user_name = _iam_user_name(identity_id)
         path = self._settings.aws_demo_iam_path
 
-        try:
-            before = self._safe_get_user(user_name)
+        # Nota: NO se hace un get_user "before" aquí. Cuando el usuario aún
+        # no existe, IAM evalúa GetUser contra el ARN de path raíz por
+        # defecto (no puede saber el path real de un recurso inexistente),
+        # y como la policy del backend está acotada a
+        # user/cloud-iam-hub-demo/*, esa llamada da AccessDenied incluso
+        # con permisos correctos. Como los nombres de demo son siempre
+        # generados (UUID-based), nunca preexisten legítimamente, así que
+        # before=None es el snapshot correcto para una creación nueva.
+        before: Optional[dict[str, Any]] = None
 
+        try:
             self._iam.create_user(
                 UserName=user_name,
                 Path=path,

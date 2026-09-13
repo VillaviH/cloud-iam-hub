@@ -20,6 +20,15 @@ Antes de cualquier llamada real, se verifica explícitamente (ver
 app.config.assert_azure_tenant_is_safe) que el tenant activo sea el
 declarado como propio — este proyecto es un repo público y nunca debe
 ejecutar operaciones de IAM reales contra un directorio no declarado.
+
+Nota de seguridad sobre el permiso de Graph: el permiso de aplicación
+`User.ReadWrite.All` no se puede acotar de forma nativa a un subconjunto
+de usuarios (es todo-el-tenant por diseño de Microsoft Graph). Como
+mitigación en código, este adapter se niega a crear, habilitar,
+deshabilitar o consultar cualquier UPN que no siga exactamente el patrón
+`demo-<identity_id>@<tenant>` (ver `_assert_is_demo_principal`). Esto
+reduce el radio de impacto de un bug o un uso indebido del adapter,
+aunque el permiso subyacente en Graph siga siendo amplio.
 """
 
 from __future__ import annotations
@@ -31,7 +40,10 @@ from uuid import uuid4
 from azure.core.exceptions import ResourceNotFoundError
 from azure.identity import ClientSecretCredential
 from azure.mgmt.authorization import AuthorizationManagementClient
+from azure.mgmt.authorization.v2022_04_01.models import RoleAssignmentCreateParameters
 from msgraph import GraphServiceClient
+from msgraph.generated.models.password_profile import PasswordProfile
+from msgraph.generated.models.user import User
 
 from app.adapters.base import AdapterResult, CloudAdapter
 from app.config import Settings, assert_azure_tenant_is_safe
@@ -49,6 +61,25 @@ _DOMAIN_SUFFIX_PLACEHOLDER = "example.onmicrosoft.com"  # se sobreescribe por se
 def _upn_for(identity_id: str, settings: Settings) -> str:
     domain = settings.azure_upn_domain or _DOMAIN_SUFFIX_PLACEHOLDER
     return f"demo-{identity_id}@{domain}"
+
+
+class UnsafeAzurePrincipalError(RuntimeError):
+    """Se lanza si el adapter intentara operar sobre un UPN que no sigue
+    el patrón de demo (demo-<identity_id>@<tenant>). El permiso de Graph
+    del service principal es todo-el-tenant, así que este chequeo es la
+    única barrera en código que impide tocar un usuario real del tenant.
+    """
+
+
+def _assert_is_demo_principal(upn: str, settings: Settings) -> None:
+    domain = settings.azure_upn_domain or _DOMAIN_SUFFIX_PLACEHOLDER
+    expected_suffix = f"@{domain}"
+    if not upn.startswith("demo-") or not upn.endswith(expected_suffix):
+        raise UnsafeAzurePrincipalError(
+            f"AzureAdapter se niega a operar sobre '{upn}': no sigue el patrón "
+            f"'demo-<identity_id>{expected_suffix}'. Esto protege contra tocar "
+            "una identidad real del tenant por un bug o un identity_id inesperado."
+        )
 
 
 class AzureAdapter(CloudAdapter):
@@ -70,6 +101,7 @@ class AzureAdapter(CloudAdapter):
         assert_azure_tenant_is_safe(self._settings.azure_tenant_id, self._settings)
 
         upn = _upn_for(identity_id, self._settings)
+        _assert_is_demo_principal(upn, self._settings)
         try:
             before = await self._safe_get_user(upn)
 
@@ -90,6 +122,7 @@ class AzureAdapter(CloudAdapter):
         assert_azure_tenant_is_safe(self._settings.azure_tenant_id, self._settings)
 
         upn = _upn_for(identity_id, self._settings)
+        _assert_is_demo_principal(upn, self._settings)
         try:
             before = await self._safe_get_user(upn)
             if before is None:
@@ -105,7 +138,7 @@ class AzureAdapter(CloudAdapter):
             #    "disable"; no se elimina el usuario para conservar el
             #    antecedente auditable.
             await self._graph.users.by_user_id(user_id).patch(
-                {"accountEnabled": False}
+                User(account_enabled=False)
             )
 
             after = await self._safe_get_user(upn)
@@ -116,27 +149,27 @@ class AzureAdapter(CloudAdapter):
             return AdapterResult(success=False, error=str(exc))
 
     async def _create_or_enable_user(self, *, upn: str, display_name: str) -> dict[str, Any]:
+        _assert_is_demo_principal(upn, self._settings)  # defensa en profundidad
         existing = await self._safe_get_user(upn)
         if existing is not None:
             if not existing.get("accountEnabled", True):
                 await self._graph.users.by_user_id(existing["id"]).patch(
-                    {"accountEnabled": True}
+                    User(account_enabled=True)
                 )
             return existing
 
         temp_password = uuid4().hex + "Aa1!"
-        new_user = await self._graph.users.post(
-            {
-                "accountEnabled": True,
-                "displayName": display_name,
-                "mailNickname": upn.split("@")[0],
-                "userPrincipalName": upn,
-                "passwordProfile": {
-                    "forceChangePasswordNextSignIn": True,
-                    "password": temp_password,
-                },
-            }
+        request_body = User(
+            account_enabled=True,
+            display_name=display_name,
+            mail_nickname=upn.split("@")[0],
+            user_principal_name=upn,
+            password_profile=PasswordProfile(
+                force_change_password_next_sign_in=True,
+                password=temp_password,
+            ),
         )
+        new_user = await self._graph.users.post(request_body)
         return {"id": new_user.id, "userPrincipalName": upn, "accountEnabled": True}
 
     async def _safe_get_user(self, upn: str) -> Optional[dict[str, Any]]:
@@ -167,10 +200,10 @@ class AzureAdapter(CloudAdapter):
         result = self._authorization.role_assignments.create(
             scope=scope,
             role_assignment_name=assignment_name,
-            parameters={
-                "role_definition_id": role_definition_id,
-                "principal_id": principal_id,
-            },
+            parameters=RoleAssignmentCreateParameters(
+                role_definition_id=role_definition_id,
+                principal_id=principal_id,
+            ),
         )
         return result.id
 

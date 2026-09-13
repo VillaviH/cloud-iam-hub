@@ -201,6 +201,13 @@ credenciales reales, ten en cuenta:
   coincide exactamente con `AZURE_TENANT_ID`, el adapter se niega a
   ejecutar cualquier operación. Esto evita que una sesión de `az login`
   distinta (por ejemplo, un tenant corporativo) sea tocada por accidente.
+- **El permiso de Graph de Azure es todo-el-tenant, mitigado en código.**
+  `User.ReadWrite.All` no se puede acotar de forma nativa a un
+  subconjunto de usuarios en Microsoft Graph. Como mitigación,
+  `AzureAdapter` se niega a operar sobre cualquier UPN que no siga
+  exactamente el patrón `demo-<identity_id>@<tenant>`
+  (`_assert_is_demo_principal`), y el secreto del service principal
+  expira a los 7 días (`infra/azure/main.tf`).
 - **La API no debe quedar abierta al público.** El frontend estático y
   Cloud Run son públicos por diseño (para que cualquiera pueda ver la
   demo en un navegador), pero `POST /onboard`, `POST /offboard` y
@@ -230,15 +237,20 @@ abstracción propia y open source en vez de una plataforma comercial.
 
 ## Roadmap (ideas para quien continúe este repo)
 
-- Reemplazar el fan-out `asyncio.gather` por Eventarc + Cloud Run Workers
-  reales (el diagrama original ya contempla esta pieza).
+- **Reemplazar el fan-out `asyncio.gather` por Eventarc + Cloud Run
+  Workers reales** (el diagrama original ya contempla esta pieza). Es el
+  cambio más grande pendiente: implica separar `onboard`/`offboard` en
+  "escribir intención" vs. "aplicar cambio" (con estado `pending` visible
+  mientras el Worker procesa), un servicio Cloud Run nuevo que reciba
+  CloudEvents desde un trigger de Eventarc sobre Firestore, y los permisos
+  IAM del *service agent* de Eventarc (`roles/eventarc.eventReceiver`,
+  `roles/run.invoker`). No tiene buen emulador local, así que cada
+  iteración de prueba requiere desplegar de verdad.
 - Agregar más roles unificados además de `viewer`/`editor`.
 - Sustituir el usuario de demo de AWS por un rol federado (IAM Identity
   Center) para mostrar el camino de "disable" nativo vía SSO.
 - Tests automatizados con `pytest` sobre `IdentityService` usando
   `InMemoryRepository` + `MockAdapter` (ya desacoplados para esto).
-- Desplegar el backend a Cloud Run con un `Dockerfile` (actualmente se
-  corre local o vía `gcloud run deploy --source .`).
 
 ## Licencia
 

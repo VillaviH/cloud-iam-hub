@@ -57,6 +57,14 @@ resource "azurerm_resource_group" "demo" {
 
 resource "azuread_application" "backend" {
   display_name = "${var.project_name}-backend"
+
+  # El permiso de Graph se gestiona con el recurso separado
+  # azuread_application_api_access (abajo). Sin este ignore_changes,
+  # cada `terraform plan` propone eliminar ese permiso por un conflicto
+  # conocido de sincronización de estado entre ambos recursos.
+  lifecycle {
+    ignore_changes = [required_resource_access]
+  }
 }
 
 resource "azuread_service_principal" "backend" {
@@ -65,6 +73,16 @@ resource "azuread_service_principal" "backend" {
 
 resource "azuread_service_principal_password" "backend" {
   service_principal_id = azuread_service_principal.backend.id
+  # El permiso de Graph adjunto (User.ReadWrite.All) es todo-el-tenant por
+  # diseño de Microsoft Graph — no se puede acotar de forma nativa a solo
+  # usuarios de demo. Como mitigación, esta credencial expira en 7 días en
+  # vez de quedar viva indefinidamente después de la charla. Renovar con
+  # `terraform apply` si se necesita más tiempo.
+  end_date = timeadd(timestamp(), "168h")
+
+  lifecycle {
+    ignore_changes = [end_date]
+  }
 }
 
 # Rol RBAC (plano de autorización) — acotado únicamente al resource group
@@ -72,6 +90,18 @@ resource "azuread_service_principal_password" "backend" {
 resource "azurerm_role_assignment" "backend_rbac_scope" {
   scope                = azurerm_resource_group.demo.id
   role_definition_name = "Reader"
+  principal_id         = azuread_service_principal.backend.object_id
+}
+
+# El backend necesita, además de "Reader", permiso para CREAR/BORRAR
+# roleAssignments de terceros (los usuarios de demo) dentro del mismo
+# resource group. "Reader" no incluye Microsoft.Authorization/
+# roleAssignments/write, así que se agrega "Role Based Access Control
+# Administrator" — sigue acotado únicamente a este resource group vacío,
+# nunca a la subscription completa.
+resource "azurerm_role_assignment" "backend_rbac_admin_scope" {
+  scope                = azurerm_resource_group.demo.id
+  role_definition_name = "Role Based Access Control Administrator"
   principal_id         = azuread_service_principal.backend.object_id
 }
 

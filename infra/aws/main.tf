@@ -89,7 +89,9 @@ resource "aws_iam_policy" "backend_operator_policy" {
           "iam:ListAttachedUserPolicies",
           "iam:PutUserPolicy",
           "iam:DeleteUserPolicy",
-          "iam:ListUserPolicies"
+          "iam:ListUserPolicies",
+          "iam:GetLoginProfile",
+          "iam:DeleteLoginProfile"
         ]
         # El path scoping es lo que impide que este usuario del backend
         # pueda tocar cualquier otro usuario/rol de la cuenta.
