@@ -1,0 +1,5 @@
+# Copiar a terraform.tfvars (gitignored) y ajustar con TU proyecto GCP.
+gcp_project_id     = "tu-proyecto-gcp"
+gcp_region         = "us-central1"
+firestore_location = "nam5"
+project_name       = "cloud-iam-hub"

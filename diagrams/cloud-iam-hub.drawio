@@ -1,0 +1,147 @@
+<mxfile host="app.diagrams.net" agent="kiro" version="24.0.0">
+  <diagram id="cloud-iam-hub-devfest" name="cloud-iam-hub · demo">
+    <mxGraphModel dx="1600" dy="1000" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1000" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" value="One Cloud to Rule Them All · cloud-iam-hub (cerebro en GCP, orquesta AWS + Azure)" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;fontSize=18;fontStyle=1;fontColor=#202124;" vertex="1" parent="1">
+          <mxGeometry x="40" y="10" width="1100" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- Admin actor -->
+        <mxCell id="admin" value="Admin / Plataforma&#10;(CLI · CI/CD)" style="shape=umlActor;html=1;verticalLabelPosition=bottom;verticalAlign=top;fontSize=12;fillColor=#F5F5F5;strokeColor=#333333;" vertex="1" parent="1">
+          <mxGeometry x="60" y="320" width="60" height="90" as="geometry" />
+        </mxCell>
+
+        <!-- GCP control plane container -->
+        <mxCell id="gcpbox" value="Google Cloud · CONTROL PLANE (serverless, ~pocos USD/mes)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8F0FE;strokeColor=#4285F4;verticalAlign=top;fontSize=13;fontStyle=1;fontColor=#174EA6;align=left;spacingLeft=12;spacingTop=8;" vertex="1" parent="1">
+          <mxGeometry x="200" y="60" width="640" height="660" as="geometry" />
+        </mxCell>
+
+        <mxCell id="idp" value="Identity Platform&#10;(login / authn del hub)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4285F4;strokeColor=#174EA6;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="270" height="55" as="geometry" />
+        </mxCell>
+
+        <mxCell id="api" value="Cloud Run · API (FastAPI / Python)&#10;IdentityService — contrato unificado&#10;POST /onboard · POST /offboard" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4285F4;strokeColor=#174EA6;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="270" y="240" width="300" height="80" as="geometry" />
+        </mxCell>
+
+        <mxCell id="fs" value="Firestore (NoSQL)&#10;Identity · Role · Assignment · Audit&#10;(intención declarativa + estado)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FBBC04;strokeColor=#B06000;fontColor=#202124;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="250" y="390" width="270" height="110" as="geometry" />
+        </mxCell>
+
+        <mxCell id="eventarc" value="Eventarc&#10;(cambio en Assignment → evento)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#34A853;strokeColor=#0D652D;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="240" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <mxCell id="workers" value="Cloud Run · Workers&#10;ejecuta Adapters en fan-out paralelo" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4285F4;strokeColor=#174EA6;fontColor=#FFFFFF;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="580" y="380" width="230" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Adapters -->
+        <mxCell id="adplabel" value="Adapter pattern (misma interfaz CloudAdapter)" style="text;html=1;strokeColor=none;fillColor=none;align=center;fontSize=11;fontStyle=2;fontColor=#5F6368;" vertex="1" parent="1">
+          <mxGeometry x="230" y="530" width="580" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="adpGcp" value="GcpAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#34A853;strokeColor=#0D652D;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="560" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="adpAws" value="AwsAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FF9900;strokeColor=#B35A00;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="560" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="adpAzure" value="AzureAdapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#0078D4;strokeColor=#004578;fontColor=#FFFFFF;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="640" y="560" width="170" height="55" as="geometry" />
+        </mxCell>
+
+        <!-- AWS governed -->
+        <mxCell id="awsbox" value="Amazon Web Services (gobernada)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFF3E0;strokeColor=#FF9900;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#B35A00;align=left;spacingLeft=10;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="940" y="70" width="320" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="awsIam" value="IAM&#10;users · policies&#10;groups" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9900;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="965" y="120" width="130" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="awsIdc" value="IAM Identity&#10;Center (SSO)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#FF9900;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1110" y="120" width="130" height="100" as="geometry" />
+        </mxCell>
+
+        <!-- GCP governed target -->
+        <mxCell id="gcptargetbox" value="GCP · recursos gobernados" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E6F4EA;strokeColor=#34A853;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#0D652D;align=left;spacingLeft=10;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="940" y="290" width="320" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="gcpTarget" value="IAM policy del proyecto&#10;(bindings + etag)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#34A853;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="965" y="330" width="270" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Azure governed -->
+        <mxCell id="azurebox" value="Microsoft Azure (gobernada · 2 planos)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E5F1FB;strokeColor=#0078D4;verticalAlign=top;fontSize=12;fontStyle=1;fontColor=#004578;align=left;spacingLeft=10;spacingTop=6;" vertex="1" parent="1">
+          <mxGeometry x="940" y="450" width="320" height="220" as="geometry" />
+        </mxCell>
+        <mxCell id="azEntra" value="Entra ID (Microsoft Graph)&#10;usuarios · accountEnabled" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="965" y="490" width="270" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="azRbac" value="Azure RBAC&#10;roleAssignments sobre scope" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0078D4;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="965" y="575" width="270" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- Trampas (gotchas) notes -->
+        <mxCell id="noteAws" value="TRAMPA AWS&#10;No existe &quot;disable user&quot;.&#10;Offboarding real = desactivar access keys + quitar login profile + detach de policies/groups (o adjuntar AWSDenyAll). SSO/Identity Center sí deshabilita en el store." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="70" width="270" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="noteGcp" value="TRAMPA GCP&#10;setIamPolicy() reemplaza TODA la política. Hay que hacer getIamPolicy → mutar bindings → setIamPolicy CON el etag y reintentar ante 409 ABORTED." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="290" width="270" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="noteAzure" value="TRAMPA AZURE&#10;Dos planos separados, dos SDKs:&#10;· Entra ID (identidad) → Graph: crear / accountEnabled=false&#10;· Azure RBAC (permisos) → roleAssignments sobre subscription / RG / recurso.&#10;No hay un solo assign()." style="shape=note;whiteSpace=wrap;html=1;fillColor=#FFF2CC;strokeColor=#D6B656;align=left;verticalAlign=top;spacingLeft=8;spacingTop=6;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="1300" y="450" width="270" height="220" as="geometry" />
+        </mxCell>
+
+        <!-- Demo flow legend -->
+        <mxCell id="legend" value="GUION DEL DEMO EN VIVO&#10;&#10;1) Onboarding: `POST /onboard` → el hub crea el Identity y N Assignments (uno por nube) en Firestore = la INTENCIÓN.&#10;2) Firestore dispara Eventarc → Workers hacen fan-out y cada Adapter aplica el cambio en su nube EN PARALELO.&#10;   · GcpAdapter: get→setIamPolicy(etag)  · AwsAdapter: crea user + attach policies  · AzureAdapter: Graph (crea user) + RBAC (roleAssignment)&#10;3) Cada Adapter escribe un registro en la colección Audit (actor, action, provider, before/after, correlationId) → trazabilidad cross-cloud unificada.&#10;4) Offboarding: `POST /offboard` → revoca en las 3 nubes de un golpe y muestra las trampas: Azure accountEnabled=false, AWS sin &quot;disable&quot; (keys+DenyAll), GCP quita binding con etag.&#10;5) Plan B en tarima: flag CLOUD_IAM_MODE=sandbox conmuta los Adapters a mock (misma interfaz) por si falla la red — el demo nunca se cae.&#10;&#10;Encuadre: esto es la abstracción por dentro que venden CIEM (Wiz / Prisma) e IGA (SailPoint)." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F5F5F5;strokeColor=#9E9E9E;align=left;verticalAlign=top;spacingLeft=12;spacingTop=8;fontSize=12;" vertex="1" parent="1">
+          <mxGeometry x="40" y="760" width="1530" height="210" as="geometry" />
+        </mxCell>
+
+        <!-- Edges -->
+        <mxCell id="e1" value="1. onboard / offboard (HTTPS REST)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#333333;" edge="1" parent="1" source="admin" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" value="authn del hub" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=10;strokeColor=#4285F4;" edge="1" parent="1" source="idp" target="api">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" value="2. escribe Assignment (intención)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#B06000;" edge="1" parent="1" source="api" target="fs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" value="3. cambio → evento" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#0D652D;" edge="1" parent="1" source="fs" target="eventarc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" value="4. evento por assignment" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#0D652D;" edge="1" parent="1" source="eventarc" target="workers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" value="5. fan-out paralelo" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#174EA6;" edge="1" parent="1" source="workers" target="adpGcp">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#174EA6;" edge="1" parent="1" source="workers" target="adpAws">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#174EA6;" edge="1" parent="1" source="workers" target="adpAzure">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" value="get→setIamPolicy(etag), retry 409" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#0D652D;" edge="1" parent="1" source="adpGcp" target="gcpTarget">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" value="boto3: user/keys/policies/DenyAll" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#B35A00;" edge="1" parent="1" source="adpAws" target="awsbox">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" value="Graph: accountEnabled" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#004578;" edge="1" parent="1" source="adpAzure" target="azEntra">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" value="RBAC: roleAssignment" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=10;strokeColor=#004578;" edge="1" parent="1" source="adpAzure" target="azRbac">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" value="6. escribe Audit (before/after)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=10;strokeColor=#B06000;exitX=0.5;exitY=1;entryX=0.9;entryY=0;" edge="1" parent="1" source="workers" target="fs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

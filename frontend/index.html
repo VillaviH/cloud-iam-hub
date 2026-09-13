@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>cloud-iam-hub · One Cloud to Rule Them All</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.5; min-height: 100vh; }
+
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 40px 30px; text-align: center; border-bottom: 1px solid #2d3748; }
+  .badge { display: inline-block; background: #4285f4; color: white; padding: 5px 14px; border-radius: 16px; font-size: 12px; font-weight: 600; margin-bottom: 14px; letter-spacing: 0.5px; }
+  .hero h1 { font-size: 2.1em; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px; }
+  .hero p { color: #94a3b8; font-size: 1em; }
+
+  .mode-banner { text-align: center; padding: 8px; font-size: 13px; font-weight: 600; }
+  .mode-sandbox { background: #78350f; color: #fef3c7; }
+  .mode-live { background: #14532d; color: #dcfce7; }
+  .mode-unknown { background: #374151; color: #d1d5db; }
+
+  .container { max-width: 1000px; margin: 0 auto; padding: 30px 20px 60px; }
+
+  .panel { background: #1e2130; border: 1px solid #2d3748; border-radius: 14px; padding: 24px; margin-bottom: 24px; }
+  .panel h2 { font-size: 1.1em; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+  label { display: block; font-size: 13px; color: #94a3b8; margin-bottom: 6px; margin-top: 14px; }
+  label:first-of-type { margin-top: 0; }
+  input, select { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #2d3748; background: #0f1117; color: #e2e8f0; font-size: 14px; }
+  input:focus, select:focus { outline: none; border-color: #4285f4; }
+
+  .checkboxes { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+  .checkboxes label { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: #cbd5e1; }
+  .checkboxes input[type="checkbox"] { width: auto; }
+
+  button { margin-top: 18px; padding: 11px 22px; border-radius: 8px; border: none; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity 0.15s; }
+  button:hover { opacity: 0.88; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-onboard { background: linear-gradient(90deg, #4285f4, #34a853); color: white; }
+  .btn-offboard { background: linear-gradient(90deg, #ea4335, #fb923c); color: white; }
+  .btn-refresh { background: #2d3748; color: #cbd5e1; }
+
+  .identity-row { display: flex; align-items: center; justify-content: space-between; padding: 12px; background: #171a26; border-radius: 8px; margin-bottom: 8px; border: 1px solid #2d3748; }
+  .identity-row .info { font-size: 13px; }
+  .identity-row .info .name { font-weight: 700; color: #e2e8f0; }
+  .identity-row .info .id { color: #64748b; font-size: 11px; font-family: monospace; }
+  .pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .pill-aws { background: rgba(255,153,0,0.2); color: #ff9900; }
+  .pill-gcp { background: rgba(52,168,83,0.2); color: #34a853; }
+  .pill-azure { background: rgba(0,120,212,0.2); color: #0078d4; }
+  .pill-applied, .pill-revoked { opacity: 1; }
+  .pill-pending { opacity: 0.5; }
+  .pill-failed { background: rgba(239,68,68,0.25) !important; color: #f87171 !important; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th { text-align: left; padding: 8px 10px; color: #94a3b8; border-bottom: 1px solid #2d3748; font-weight: 600; }
+  td { padding: 8px 10px; border-bottom: 1px solid #1a1d29; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .badge-ok { color: #34d399; font-weight: 700; }
+  .badge-err { color: #f87171; font-weight: 700; }
+
+  .empty { color: #64748b; font-size: 13px; padding: 12px 0; text-align: center; }
+  .footer-note { text-align: center; color: #64748b; font-size: 12px; margin-top: 30px; }
+  .footer-note code { background: #1e2130; padding: 2px 6px; border-radius: 4px; }
+
+  .toast { position: fixed; bottom: 24px; right: 24px; background: #1e2130; border: 1px solid #2d3748; border-radius: 10px; padding: 14px 18px; font-size: 13px; max-width: 340px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); display: none; }
+  .toast.show { display: block; }
+  .toast.error { border-color: #ef4444; color: #fecaca; }
+  .toast.success { border-color: #34d399; color: #bbf7d0; }
+
+  .links-row { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .links-row a { color: #60a5fa; font-size: 13px; text-decoration: none; }
+  .links-row a:hover { text-decoration: underline; }
+
+  .cloud-strip { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+  .cloud-chip { font-size: 12px; font-weight: 700; padding: 6px 14px; border-radius: 20px; }
+  .chip-gcp { background: rgba(66,133,244,0.18); color: #60a5fa; border: 1px solid rgba(66,133,244,0.4); }
+  .chip-aws { background: rgba(255,153,0,0.18); color: #fdba74; border: 1px solid rgba(255,153,0,0.4); }
+  .chip-azure { background: rgba(0,120,212,0.18); color: #7dd3fc; border: 1px solid rgba(0,120,212,0.4); }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">🚀 DevFest Quito 2026</div>
+  <h1>One Cloud to Rule Them All</h1>
+  <p>cloud-iam-hub · gobernando AWS y Azure desde GCP</p>
+  <div class="cloud-strip">
+    <span class="cloud-chip chip-gcp">🧠 GCP · control plane</span>
+    <span class="cloud-chip chip-aws">☁️ AWS · gobernada</span>
+    <span class="cloud-chip chip-azure">☁️ Azure · gobernada</span>
+  </div>
+  <div class="links-row">
+    <a href="https://github.com/VillaviH/cloud-iam-hub" target="_blank" rel="noopener">📦 Repo en GitHub</a>
+    <a href="https://github.com/VillaviH/cloud-iam-hub/blob/main/docs/IAM_CLOUD_MAPPING.md" target="_blank" rel="noopener">📘 Mapeo IAM entre nubes</a>
+  </div>
+  <!-- El diagrama de arquitectura vive en el repo (arquitectura-cloud-iam-hub.html),
+       no se sirve desde este bucket porque deploy.sh solo sube index.html. -->
+</div>
+
+<div id="modeBanner" class="mode-banner mode-unknown">Verificando conexión con la API…</div>
+
+<div class="container">
+
+  <div class="panel">
+    <h2>⚙️ Conexión a la API</h2>
+    <label for="apiBaseUrl">URL del backend (Cloud Run / local)</label>
+    <input id="apiBaseUrl" type="text" placeholder="https://cloud-iam-hub-backend-xxxx.run.app" />
+
+    <label for="apiKey">API Key (header <code>X-Api-Key</code>, solo si el backend la exige)</label>
+    <input id="apiKey" type="password" placeholder="Déjalo vacío si el backend corre sin API_SHARED_SECRET" />
+
+    <button class="btn-refresh" onclick="checkHealth()">Probar conexión</button>
+  </div>
+
+  <div class="panel">
+    <h2>🟢 Onboarding — dar acceso en las 3 nubes de un golpe</h2>
+    <label for="displayName">Nombre (identidad de demo, no una persona real)</label>
+    <input id="displayName" type="text" placeholder="Speaker Demo DevFest" />
+
+    <label for="roleKey">Rol</label>
+    <select id="roleKey">
+      <option value="viewer">viewer (solo lectura)</option>
+      <option value="editor">editor</option>
+    </select>
+
+    <label>Proveedores</label>
+    <div class="checkboxes">
+      <label><input type="checkbox" value="aws" class="prov-checkbox" checked> AWS</label>
+      <label><input type="checkbox" value="gcp" class="prov-checkbox" checked> GCP</label>
+      <label><input type="checkbox" value="azure" class="prov-checkbox" checked> Azure</label>
+    </div>
+
+    <button class="btn-onboard" onclick="onboard()">Onboardear en las 3 nubes</button>
+  </div>
+
+  <div class="panel">
+    <h2>👥 Identidades de demo activas</h2>
+    <button class="btn-refresh" onclick="renderIdentities()">Actualizar lista</button>
+    <div id="identitiesList" style="margin-top:14px"></div>
+  </div>
+
+  <div class="panel">
+    <h2>📜 Audit trail (últimos eventos, cross-cloud)</h2>
+    <button class="btn-refresh" onclick="loadAudit()">Actualizar audit</button>
+    <div id="auditTableWrap" style="margin-top:14px"></div>
+  </div>
+
+  <div class="footer-note">
+    cloud-iam-hub — frontend estático servido desde Cloud Storage (GCP).
+    Backend en modo <code>sandbox</code> por defecto: sin credenciales, sin llamadas reales.
+    En modo <code>live</code>, la API exige el header <code>X-Api-Key</code> — configúralo arriba.
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+  // Estado local en memoria: identity_id -> { display_name, assignments[] }
+  const state = { identities: {} };
+
+  function getApiBaseUrl() {
+    const input = document.getElementById('apiBaseUrl');
+    const stored = localStorage.getItem('cloud_iam_hub_api_url');
+    if (!input.value && stored) input.value = stored;
+    return (input.value || stored || '').replace(/\/$/, '');
+  }
+
+  function getApiKey() {
+    const input = document.getElementById('apiKey');
+    const stored = localStorage.getItem('cloud_iam_hub_api_key');
+    if (!input.value && stored) input.value = stored;
+    return input.value || stored || '';
+  }
+
+  document.getElementById('apiBaseUrl').addEventListener('change', (e) => {
+    localStorage.setItem('cloud_iam_hub_api_url', e.target.value.trim());
+  });
+
+  document.getElementById('apiKey').addEventListener('change', (e) => {
+    localStorage.setItem('cloud_iam_hub_api_key', e.target.value.trim());
+  });
+
+  function showToast(message, kind = 'success') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.className = `toast show ${kind}`;
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  async function apiFetch(path, options = {}) {
+    const base = getApiBaseUrl();
+    if (!base) {
+      showToast('Configura primero la URL del backend arriba.', 'error');
+      throw new Error('API base URL no configurada');
+    }
+    const apiKey = getApiKey();
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['X-Api-Key'] = apiKey;
+
+    const res = await fetch(base + path, {
+      headers,
+      ...options,
+    });
+    if (res.status === 401) {
+      throw new Error('401 no autorizado — revisa el campo "API Key" (X-Api-Key)');
+    }
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP ${res.status}: ${text}`);
+    }
+    return res.json();
+  }
+
+  async function checkHealth() {
+    const banner = document.getElementById('modeBanner');
+    try {
+      const data = await apiFetch('/health');
+      banner.textContent = `✅ Backend conectado — modo: ${data.mode.toUpperCase()}`;
+      banner.className = `mode-banner ${data.mode === 'live' ? 'mode-live' : 'mode-sandbox'}`;
+    } catch (err) {
+      banner.textContent = `⚠️ No se pudo conectar al backend: ${err.message}`;
+      banner.className = 'mode-banner mode-unknown';
+    }
+  }
+
+  function selectedProviders() {
+    return Array.from(document.querySelectorAll('.prov-checkbox'))
+      .filter((cb) => cb.checked)
+      .map((cb) => cb.value);
+  }
+
+  async function onboard() {
+    const displayName = document.getElementById('displayName').value.trim();
+    const roleKey = document.getElementById('roleKey').value;
+    const providers = selectedProviders();
+
+    if (!displayName) {
+      showToast('Ingresa un nombre para la identidad de demo.', 'error');
+      return;
+    }
+    if (providers.length === 0) {
+      showToast('Selecciona al menos un proveedor.', 'error');
+      return;
+    }
+
+    try {
+      const result = await apiFetch('/onboard', {
+        method: 'POST',
+        body: JSON.stringify({ display_name: displayName, role_key: roleKey, providers }),
+      });
+      state.identities[result.identity.id] = {
+        display_name: result.identity.display_name,
+        assignments: result.assignments,
+      };
+      showToast(`Onboarding disparado en ${providers.length} nube(s). correlation_id: ${result.correlation_id}`);
+      renderIdentities();
+      loadAudit();
+    } catch (err) {
+      showToast(`Error en onboarding: ${err.message}`, 'error');
+    }
+  }
+
+  async function offboard(identityId) {
+    try {
+      const result = await apiFetch('/offboard', {
+        method: 'POST',
+        body: JSON.stringify({ identity_id: identityId }),
+      });
+      if (state.identities[identityId]) {
+        state.identities[identityId].assignments = result.assignments;
+      }
+      showToast(`Offboarding disparado. correlation_id: ${result.correlation_id}`);
+      renderIdentities();
+      loadAudit();
+    } catch (err) {
+      showToast(`Error en offboarding: ${err.message}`, 'error');
+    }
+  }
+
+  function providerPillClass(provider) {
+    return { aws: 'pill-aws', gcp: 'pill-gcp', azure: 'pill-azure' }[provider] || '';
+  }
+
+  function renderIdentities() {
+    const wrap = document.getElementById('identitiesList');
+    const ids = Object.keys(state.identities);
+
+    if (ids.length === 0) {
+      wrap.innerHTML = '<div class="empty">Aún no se ha hecho ningún onboarding en esta sesión del navegador.</div>';
+      return;
+    }
+
+    wrap.innerHTML = ids
+      .map((id) => {
+        const identity = state.identities[id];
+        const pills = identity.assignments
+          .map((a) => {
+            const statusClass = a.status === 'failed' ? 'pill-failed' : `pill-${a.status}`;
+            return `<span class="pill ${providerPillClass(a.provider)} ${statusClass}">${a.provider.toUpperCase()} · ${a.status}</span>`;
+          })
+          .join('');
+        return `
+          <div class="identity-row">
+            <div class="info">
+              <div class="name">${identity.display_name}</div>
+              <div class="id">${id}</div>
+              <div class="pills">${pills}</div>
+            </div>
+            <button class="btn-offboard" onclick="offboard('${id}')">Offboardear</button>
+          </div>`;
+      })
+      .join('');
+  }
+
+  async function loadAudit() {
+    const wrap = document.getElementById('auditTableWrap');
+    try {
+      const data = await apiFetch('/audit?limit=25');
+      if (!data.entries.length) {
+        wrap.innerHTML = '<div class="empty">Sin eventos de audit todavía.</div>';
+        return;
+      }
+      const rows = data.entries
+        .map(
+          (e) => `
+          <tr>
+            <td>${new Date(e.timestamp).toLocaleTimeString()}</td>
+            <td>${e.provider.toUpperCase()}</td>
+            <td>${e.action}</td>
+            <td>${e.success ? '<span class="badge-ok">OK</span>' : `<span class="badge-err">ERROR</span>`}</td>
+            <td style="font-family:monospace;font-size:11px;color:#64748b">${e.correlation_id}</td>
+          </tr>`
+        )
+        .join('');
+      wrap.innerHTML = `
+        <table>
+          <thead><tr><th>Hora</th><th>Nube</th><th>Acción</th><th>Estado</th><th>Correlation ID</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (err) {
+      wrap.innerHTML = `<div class="empty">No se pudo cargar el audit: ${err.message}</div>`;
+    }
+  }
+
+  // Auto-inicialización
+  checkHealth();
+  renderIdentities();
+</script>
+
+</body>
+</html>

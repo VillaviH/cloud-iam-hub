@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>One Cloud to Rule Them All — cloud-iam-hub</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f1117; color: #e2e8f0; line-height: 1.6; }
+
+  .hero { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); padding: 60px 40px; text-align: center; border-bottom: 1px solid #2d3748; position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(99,102,241,0.1) 0%, transparent 60%); }
+  .badge { display: inline-block; background: #4285f4; color: white; padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; margin-bottom: 20px; letter-spacing: 1px; position: relative; z-index: 1; }
+  .hero h1 { font-size: 2.8em; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; position: relative; z-index: 1; }
+  .hero h2 { font-size: 1.2em; color: #94a3b8; font-weight: 400; margin-bottom: 30px; position: relative; z-index: 1; }
+  .meta-pills { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; position: relative; z-index: 1; }
+  .pill { background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); padding: 8px 18px; border-radius: 20px; font-size: 14px; }
+  .pill span { margin-right: 6px; }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 40px 20px; }
+  .section { margin-bottom: 56px; }
+  .section-title { font-size: 1.6em; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, #4f46e5, transparent); }
+
+  /* Diagram canvas: light card so official cloud colors read correctly */
+  .diagram-card { background: #f8f9fb; border-radius: 16px; padding: 20px; overflow-x: auto; border: 1px solid #2d3748; }
+  .diagram-card svg { display: block; min-width: 1100px; }
+  .diagram-caption { text-align: center; color: #64748b; font-size: 13px; margin-top: 10px; }
+
+  /* Legend */
+  .legend-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #94a3b8; }
+  .legend-dot { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
+
+  /* Flow timeline */
+  .timeline { position: relative; padding-left: 34px; }
+  .timeline::before { content: ''; position: absolute; left: 10px; top: 4px; bottom: 4px; width: 2px; background: linear-gradient(180deg, #4285f4, #34d399, #ff9900, #0078d4); }
+  .timeline-item { position: relative; margin-bottom: 26px; background: #1e2130; border: 1px solid #2d3748; border-radius: 12px; padding: 18px 20px; }
+  .timeline-item::before { content: attr(data-step); position: absolute; left: -34px; top: 14px; width: 24px; height: 24px; border-radius: 50%; background: #4f46e5; color: white; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #0f1117; }
+  .timeline-item h4 { font-weight: 700; color: #e2e8f0; margin-bottom: 6px; font-size: 1.05em; }
+  .timeline-item p { font-size: 14px; color: #94a3b8; }
+  .timeline-item code { background: #0d1117; border: 1px solid #30363d; padding: 2px 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12.5px; color: #79c0ff; }
+
+  .flow-block-title { font-size: 1em; font-weight: 700; color: #60a5fa; margin: 30px 0 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Gotchas grid */
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  @media(max-width: 900px) { .grid-3 { grid-template-columns: 1fr; } .hero h1 { font-size: 1.8em; } }
+  .gotcha-card { border-radius: 12px; padding: 20px; background: #1e2130; border: 1px solid #2d3748; border-left: 4px solid; }
+  .gotcha-aws { border-left-color: #ff9900; }
+  .gotcha-gcp { border-left-color: #34a853; }
+  .gotcha-azure { border-left-color: #0078d4; }
+  .gotcha-card h3 { font-size: 1em; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .gotcha-aws h3 { color: #ff9900; }
+  .gotcha-gcp h3 { color: #34a853; }
+  .gotcha-azure h3 { color: #0078d4; }
+  .gotcha-card p { font-size: 13.5px; color: #cbd5e1; }
+  .gotcha-card code { background: #0d1117; border: 1px solid #30363d; padding: 1px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; color: #79c0ff; }
+
+  .highlight-box { background: linear-gradient(135deg, rgba(79,70,229,0.15), rgba(52,211,153,0.1)); border: 1px solid rgba(79,70,229,0.3); border-radius: 12px; padding: 22px 26px; margin-top: 20px; }
+  .highlight-box strong { color: #a78bfa; }
+
+  .footer { text-align: center; padding: 40px; border-top: 1px solid #2d3748; color: #64748b; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">🚀 DevFest Quito 2026</div>
+  <h1>One Cloud to Rule Them All</h1>
+  <h2>cloud-iam-hub · gobernando AWS y Azure desde GCP</h2>
+  <div class="meta-pills">
+    <div class="pill"><span>🧠</span> Cerebro en GCP</div>
+    <div class="pill"><span>☁️</span> AWS + Azure gobernadas</div>
+    <div class="pill"><span>🧩</span> Patrón Adapter</div>
+    <div class="pill"><span>⚡</span> Serverless event-driven</div>
+    <div class="pill"><span>💰</span> ~$12–25/mes</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- ================= DIAGRAMA ================= -->
+  <div class="section">
+    <div class="section-title">Diagrama de arquitectura</div>
+    <div class="diagram-card">
+      <svg viewBox="0 0 1600 700" xmlns="http://www.w3.org/2000/svg" font-family="Segoe UI, sans-serif">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#333"/>
+          </marker>
+          <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#174EA6"/>
+          </marker>
+          <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#0D652D"/>
+          </marker>
+          <marker id="arrowOrange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#B35A00"/>
+          </marker>
+          <marker id="arrowNavy" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#004578"/>
+          </marker>
+          <marker id="arrowGold" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#B06000"/>
+          </marker>
+        </defs>
+
+        <!-- GCP control plane container -->
+        <rect x="200" y="40" width="640" height="600" rx="14" fill="#E8F0FE" stroke="#4285F4" stroke-width="1.5"/>
+        <text x="216" y="62" font-size="13" font-weight="700" fill="#174EA6">GOOGLE CLOUD · CONTROL PLANE (serverless, ~pocos USD/mes)</text>
+
+        <!-- Browser actor -->
+        <g>
+          <circle cx="95" cy="120" r="16" fill="#F5F5F5" stroke="#333"/>
+          <line x1="95" y1="136" x2="95" y2="175" stroke="#333"/>
+          <line x1="70" y1="152" x2="120" y2="152" stroke="#333"/>
+          <line x1="95" y1="175" x2="75" y2="205" stroke="#333"/>
+          <line x1="95" y1="175" x2="115" y2="205" stroke="#333"/>
+          <text x="95" y="220" font-size="11" text-anchor="middle" fill="#202124">Asistente a la charla</text>
+          <text x="95" y="233" font-size="11" text-anchor="middle" fill="#202124">(navegador)</text>
+        </g>
+
+        <!-- Frontend Cloud Storage -->
+        <rect x="30" y="255" width="130" height="55" rx="8" fill="#FBBC04" stroke="#B06000"/>
+        <text x="95" y="277" font-size="10.5" text-anchor="middle" fill="#202124" font-weight="700">Cloud Storage</text>
+        <text x="95" y="291" font-size="9.5" text-anchor="middle" fill="#3c2f00">frontend estático</text>
+        <text x="95" y="303" font-size="9" text-anchor="middle" fill="#3c2f00" font-style="italic">index.html público</text>
+
+        <!-- Admin actor -->
+        <g>
+          <circle cx="95" cy="380" r="16" fill="#F5F5F5" stroke="#333"/>
+          <line x1="95" y1="396" x2="95" y2="435" stroke="#333"/>
+          <line x1="70" y1="412" x2="120" y2="412" stroke="#333"/>
+          <line x1="95" y1="435" x2="75" y2="465" stroke="#333"/>
+          <line x1="95" y1="435" x2="115" y2="465" stroke="#333"/>
+          <text x="95" y="480" font-size="11" text-anchor="middle" fill="#202124">Admin / Plataforma</text>
+          <text x="95" y="493" font-size="11" text-anchor="middle" fill="#202124">(CLI · CI/CD)</text>
+        </g>
+
+        <!-- Identity Platform (roadmap, no implementado aún) -->
+        <rect x="250" y="80" width="270" height="50" rx="8" fill="none" stroke="#9AA0A6" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <text x="385" y="99" font-size="11" text-anchor="middle" fill="#5F6368" font-weight="600">Identity Platform (roadmap)</text>
+        <text x="385" y="113" font-size="9.5" text-anchor="middle" fill="#80868B" font-style="italic">hoy: solo X-Api-Key, sin login</text>
+
+        <!-- API Cloud Run -->
+        <rect x="270" y="200" width="300" height="75" rx="8" fill="#4285F4" stroke="#174EA6"/>
+        <text x="420" y="219" font-size="12" text-anchor="middle" fill="white" font-weight="700">Cloud Run · API (FastAPI / Python)</text>
+        <text x="420" y="234" font-size="11" text-anchor="middle" fill="#E8F0FE">POST /onboard · POST /offboard · GET /audit</text>
+        <text x="420" y="248" font-size="10" text-anchor="middle" fill="#E8F0FE">protegido con header X-Api-Key</text>
+        <text x="420" y="261" font-size="9.5" text-anchor="middle" fill="#E8F0FE" font-style="italic">(Secret Manager)</text>
+
+        <!-- Firestore -->
+        <rect x="250" y="335" width="270" height="100" rx="8" fill="#FBBC04" stroke="#B06000"/>
+        <text x="385" y="358" font-size="12" text-anchor="middle" fill="#202124" font-weight="700">Firestore (NoSQL)</text>
+        <text x="385" y="374" font-size="11" text-anchor="middle" fill="#202124">Identity · Role · Assignment · Audit</text>
+        <text x="385" y="390" font-size="10.5" text-anchor="middle" fill="#3c2f00">(intención declarativa + estado)</text>
+
+        <!-- Eventarc (roadmap, no implementado aún) -->
+        <rect x="580" y="200" width="230" height="62" rx="8" fill="none" stroke="#9AA0A6" stroke-width="1.5" stroke-dasharray="5,4"/>
+        <text x="695" y="222" font-size="11.5" text-anchor="middle" fill="#5F6368" font-weight="700">Eventarc</text>
+        <text x="695" y="238" font-size="10" text-anchor="middle" fill="#80868B">(roadmap — hoy: fan-out directo)</text>
+        <text x="695" y="252" font-size="9.5" text-anchor="middle" fill="#80868B" font-style="italic">no implementado en v0.1</text>
+
+        <!-- IdentityService fan-out (lo que hoy hace el trabajo de Eventarc+Workers) -->
+        <rect x="580" y="335" width="230" height="62" rx="8" fill="#4285F4" stroke="#174EA6"/>
+        <text x="695" y="357" font-size="12" text-anchor="middle" fill="white" font-weight="700">IdentityService</text>
+        <text x="695" y="372" font-size="10.5" text-anchor="middle" fill="#E8F0FE">asyncio.gather → fan-out paralelo</text>
+        <text x="695" y="385" font-size="9.5" text-anchor="middle" fill="#E8F0FE" font-style="italic">(dentro de la misma API, hoy)</text>
+
+        <!-- Adapter pattern label -->
+        <text x="530" y="482" font-size="11" text-anchor="middle" font-style="italic" fill="#5F6368">Adapter pattern (misma interfaz CloudAdapter)</text>
+
+        <!-- Adapters -->
+        <rect x="240" y="500" width="170" height="50" rx="8" fill="#34A853" stroke="#0D652D"/>
+        <text x="325" y="530" font-size="12" text-anchor="middle" fill="white" font-weight="700">GcpAdapter</text>
+
+        <rect x="440" y="500" width="170" height="50" rx="8" fill="#FF9900" stroke="#B35A00"/>
+        <text x="525" y="530" font-size="12" text-anchor="middle" fill="white" font-weight="700">AwsAdapter</text>
+
+        <rect x="640" y="500" width="170" height="50" rx="8" fill="#0078D4" stroke="#004578"/>
+        <text x="725" y="530" font-size="12" text-anchor="middle" fill="white" font-weight="700">AzureAdapter</text>
+
+        <!-- AWS governed -->
+        <rect x="940" y="50" width="320" height="170" rx="12" fill="#FFF3E0" stroke="#FF9900" stroke-width="1.5"/>
+        <text x="956" y="72" font-size="12.5" font-weight="700" fill="#B35A00">AMAZON WEB SERVICES (gobernada)</text>
+        <rect x="965" y="95" width="130" height="95" rx="6" fill="white" stroke="#FF9900"/>
+        <text x="1030" y="118" font-size="11" text-anchor="middle" fill="#202124" font-weight="600">IAM</text>
+        <text x="1030" y="134" font-size="10.5" text-anchor="middle" fill="#5F6368">users · policies</text>
+        <text x="1030" y="148" font-size="10.5" text-anchor="middle" fill="#5F6368">groups</text>
+        <rect x="1110" y="95" width="130" height="95" rx="6" fill="white" stroke="#FF9900"/>
+        <text x="1175" y="118" font-size="11" text-anchor="middle" fill="#202124" font-weight="600">IAM Identity</text>
+        <text x="1175" y="134" font-size="10.5" text-anchor="middle" fill="#5F6368">Center (SSO)</text>
+
+        <!-- GCP governed target -->
+        <rect x="940" y="255" width="320" height="105" rx="12" fill="#E6F4EA" stroke="#34A853" stroke-width="1.5"/>
+        <text x="956" y="277" font-size="12.5" font-weight="700" fill="#0D652D">GCP · RECURSOS GOBERNADOS</text>
+        <rect x="965" y="292" width="270" height="55" rx="6" fill="white" stroke="#34A853"/>
+        <text x="1100" y="315" font-size="11" text-anchor="middle" fill="#202124" font-weight="600">IAM policy del proyecto</text>
+        <text x="1100" y="330" font-size="10.5" text-anchor="middle" fill="#5F6368">(bindings + etag)</text>
+
+        <!-- Azure governed -->
+        <rect x="940" y="395" width="320" height="200" rx="12" fill="#E5F1FB" stroke="#0078D4" stroke-width="1.5"/>
+        <text x="956" y="417" font-size="12.5" font-weight="700" fill="#004578">MICROSOFT AZURE (gobernada · 2 planos)</text>
+        <rect x="965" y="432" width="270" height="65" rx="6" fill="white" stroke="#0078D4"/>
+        <text x="1100" y="454" font-size="11" text-anchor="middle" fill="#202124" font-weight="600">Entra ID (Microsoft Graph)</text>
+        <text x="1100" y="469" font-size="10.5" text-anchor="middle" fill="#5F6368">usuarios · accountEnabled</text>
+        <rect x="965" y="510" width="270" height="65" rx="6" fill="white" stroke="#0078D4"/>
+        <text x="1100" y="532" font-size="11" text-anchor="middle" fill="#202124" font-weight="600">Azure RBAC</text>
+        <text x="1100" y="547" font-size="10.5" text-anchor="middle" fill="#5F6368">roleAssignments sobre scope</text>
+
+        <!-- Edges -->
+        <path d="M95,205 L95,255" fill="none" stroke="#333" marker-end="url(#arrow)"/>
+        <text x="102" y="235" font-size="9.5" fill="#333">carga sitio</text>
+
+        <path d="M160,282 L270,238" fill="none" stroke="#333" marker-end="url(#arrow)"/>
+        <text x="170" y="255" font-size="9.5" fill="#333">fetch() + X-Api-Key</text>
+
+        <path d="M120,380 L270,255" fill="none" stroke="#333" marker-end="url(#arrow)"/>
+        <text x="150" y="330" font-size="9.5" fill="#333">terraform apply</text>
+
+        <path d="M420,275 L385,335" fill="none" stroke="#B06000" marker-end="url(#arrowGold)"/>
+        <text x="430" y="305" font-size="10" fill="#B06000">2. escribe Assignment</text>
+
+        <path d="M520,290 L580,360" fill="none" stroke="#174EA6" marker-end="url(#arrowBlue)"/>
+        <text x="500" y="330" font-size="10" fill="#174EA6">3-4. lee Assignments</text>
+
+        <path d="M650,397 L325,500" fill="none" stroke="#174EA6" marker-end="url(#arrowBlue)"/>
+        <path d="M695,397 L525,500" fill="none" stroke="#174EA6" marker-end="url(#arrowBlue)"/>
+        <path d="M740,397 L725,500" fill="none" stroke="#174EA6" marker-end="url(#arrowBlue)"/>
+        <text x="560" y="465" font-size="10" fill="#174EA6">5. fan-out paralelo</text>
+
+        <path d="M410,510 L940,300" fill="none" stroke="#0D652D" marker-end="url(#arrowGreen)"/>
+        <text x="640" y="420" font-size="10" fill="#0D652D">read-modify-write(etag)</text>
+
+        <path d="M610,515 L940,150" fill="none" stroke="#B35A00" marker-end="url(#arrowOrange)"/>
+        <text x="700" y="330" font-size="10" fill="#B35A00">boto3: user/keys/policies</text>
+
+        <path d="M810,520 L940,465" fill="none" stroke="#004578" marker-end="url(#arrowNavy)"/>
+        <path d="M810,530 L940,540" fill="none" stroke="#004578" marker-end="url(#arrowNavy)"/>
+        <text x="815" y="490" font-size="10" fill="#004578">Graph / RBAC</text>
+
+        <path d="M695,397 Q470,470 400,340" fill="none" stroke="#B06000" stroke-dasharray="4,3" marker-end="url(#arrowGold)"/>
+        <text x="440" y="465" font-size="10" fill="#B06000">6. escribe Audit</text>
+      </svg>
+    </div>
+    <div class="diagram-caption">Diagrama fiel a <code>diagrams/cloud-iam-hub.drawio</code> · abre el .drawio original en draw.io para editar</div>
+
+    <div class="legend-row">
+      <div class="legend-item"><span class="legend-dot" style="background:#4285f4"></span> Google Cloud (control plane)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#ff9900"></span> AWS (gobernada)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#0078d4"></span> Azure (gobernada)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#fbbc04"></span> Estado / persistencia</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#34a853"></span> Eventing / adapters</div>
+    </div>
+  </div>
+
+  <!-- ================= FLUJO DEL PROYECTO ================= -->
+  <div class="section">
+    <div class="section-title">Flujo del proyecto</div>
+
+    <div class="flow-block-title">🟢 Onboarding — dar acceso en las 3 nubes de un golpe</div>
+    <div class="timeline">
+      <div class="timeline-item" data-step="1">
+        <h4>El frontend dispara la intención</h4>
+        <p>El sitio estático en <strong>Cloud Storage</strong> hace un <code>fetch()</code> con <code>POST /onboard</code> a la API en Cloud Run (FastAPI), incluyendo el header <code>X-Api-Key</code>. Sin esa key válida (guardada en <strong>Secret Manager</strong>), la API responde <code>401</code> antes de tocar el <code>IdentityService</code>.</p>
+      </div>
+      <div class="timeline-item" data-step="2">
+        <h4>Se guarda la intención, no la ejecución</h4>
+        <p>El <strong>IdentityService</strong> escribe en <strong>Firestore</strong> un <code>Identity</code> y N <code>Assignment</code> (uno por nube). Esto es clave: el hub separa "qué se quiere" de "cómo se ejecuta" en cada proveedor.</p>
+      </div>
+      <div class="timeline-item" data-step="3">
+        <h4>Fan-out paralelo hacia los Adapters</h4>
+        <p>El propio <strong>IdentityService</strong> dispara, con <code>asyncio.gather</code>, al <code>GcpAdapter</code>, <code>AwsAdapter</code> y <code>AzureAdapter</code> en paralelo — todos implementan la misma interfaz <code>CloudAdapter</code>. (En el diagrama original esto lo hacía Eventarc + Cloud Run Workers; es el primer paso del roadmap.)</p>
+      </div>
+      <div class="timeline-item" data-step="4">
+        <h4>Cada Adapter habla el idioma nativo de su nube</h4>
+        <p><strong>GcpAdapter:</strong> <code>getIamPolicy → mutar bindings → setIamPolicy(etag)</code>, el patrón read-modify-write obligatorio en GCP. <strong>AwsAdapter:</strong> crea usuario y adjunta policies vía boto3. <strong>AzureAdapter:</strong> crea identidad en Entra ID (Graph) y asigna rol vía Azure RBAC.</p>
+      </div>
+      <div class="timeline-item" data-step="5">
+        <h4>Trazabilidad cross-cloud</h4>
+        <p>Cada Adapter escribe un registro en la colección <code>Audit</code> (actor, acción, provider, before/after, <code>correlationId</code>) → una sola fuente de verdad para auditar acceso en 3 nubes distintas, consultable vía <code>GET /audit</code>.</p>
+      </div>
+    </div>
+
+    <div class="flow-block-title">🔴 Offboarding — revocar acceso en las 3 nubes de un golpe</div>
+    <div class="timeline">
+      <div class="timeline-item" data-step="1">
+        <h4>Misma entrada, efecto inverso</h4>
+        <p><code>POST /offboard</code> reutiliza exactamente el mismo pipeline (Firestore → Eventarc → Workers → Adapters), pero cada Adapter ejecuta su lógica de revocación.</p>
+      </div>
+      <div class="timeline-item" data-step="2">
+        <h4>La revocación no es igual en cada nube</h4>
+        <p><strong>Azure:</strong> <code>accountEnabled=false</code> en Entra ID. <strong>GCP:</strong> se quita el binding con <code>etag</code> vigente. <strong>AWS:</strong> no existe "disable user" — se desactivan access keys, se elimina el login profile y se desasocian policies/grupos (o se adjunta un <code>DenyAll</code>).</p>
+      </div>
+      <div class="timeline-item" data-step="3">
+        <h4>Plan B en tarima</h4>
+        <p>Flag <code>CLOUD_IAM_MODE=sandbox</code> conmuta los Adapters a modo mock (misma interfaz, sin llamadas reales). Si falla la red o las credenciales en vivo, la demo sigue funcionando.</p>
+      </div>
+    </div>
+
+    <div class="highlight-box">
+      <strong>Encuadre para la charla:</strong> esto es la abstracción que por dentro venden plataformas de CIEM (Wiz, Prisma Cloud) e IGA (SailPoint). La diferencia es que aquí construimos el orquestador, no lo compramos — y el cerebro vive en GCP, gobernando AWS y Azure desde ahí.
+    </div>
+
+    <div class="highlight-box" style="margin-top:14px">
+      <strong>Nota de seguridad del propio demo:</strong> el frontend es un sitio público en Cloud Storage y la API de Cloud Run acepta invocaciones sin autenticación IAM — cualquiera con la URL podría llamarla. Por eso <code>POST /onboard</code>, <code>POST /offboard</code> y <code>GET /audit</code> exigen el header <code>X-Api-Key</code>, validado dentro de la propia app contra un secreto generado por Terraform en Secret Manager. Sin la key correcta, la API responde <code>401</code> antes de tocar ninguna nube.
+    </div>
+  </div>
+
+  <!-- ================= TRAMPAS ================= -->
+  <div class="section">
+    <div class="section-title">Sí se puede — pero no como esperas</div>
+    <div class="grid-3">
+      <div class="gotcha-card gotcha-gcp">
+        <h3>🔧 GCP</h3>
+        <p><code>setIamPolicy()</code> reemplaza <strong>toda</strong> la política del recurso, no la mezcla. El patrón correcto es <code>getIamPolicy</code> → mutar los bindings en memoria → <code>setIamPolicy</code> enviando el <code>etag</code> obtenido, y reintentar si la API responde <code>409 ABORTED</code> (carrera con otro escritor). Read-modify-write, no un simple "set".</p>
+      </div>
+      <div class="gotcha-card gotcha-aws">
+        <h3>🔧 AWS</h3>
+        <p>No existe una API "disable user". El offboarding real es una composición de pasos: desactivar access keys, eliminar el login profile y desasociar policies/grupos (o adjuntar <code>AWSDenyAll</code>). Con IAM Identity Center (SSO) sí hay un disable directo en el store de identidades.</p>
+      </div>
+      <div class="gotcha-card gotcha-azure">
+        <h3>🔧 AZURE</h3>
+        <p>Identidad y permisos viven en dos planos separados con dos SDKs distintos: <strong>Entra ID</strong> (Microsoft Graph) para la identidad y <code>accountEnabled</code>, y <strong>Azure RBAC</strong> para los <code>roleAssignments</code> sobre subscription / resource group / recurso. Se necesitan dos llamadas, no un solo <code>assign()</code>.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  cloud-iam-hub · One Cloud to Rule Them All · DevFest Quito 2026<br>
+  <a href="https://github.com/VillaviH/cloud-iam-hub" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:none">github.com/VillaviH/cloud-iam-hub</a>
+</div>
+
+</body>
+</html>

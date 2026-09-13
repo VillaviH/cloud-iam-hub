@@ -1,0 +1,3 @@
+# Copiar a terraform.tfvars (gitignored) y ajustar si se desea.
+aws_region   = "us-east-1"
+project_name = "cloud-iam-hub"

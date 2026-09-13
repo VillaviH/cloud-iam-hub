@@ -1,0 +1,5 @@
+# Copiar a terraform.tfvars (gitignored) y ajustar si se desea.
+# IMPORTANTE: usar un tenant de Azure propio/personal, NUNCA uno corporativo.
+location             = "eastus"
+project_name         = "cloud-iam-hub"
+resource_group_name  = "rg-cloud-iam-hub-demo"
